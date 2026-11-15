@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>3D Market – магазин 3D-моделей</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--text:#1d2433;--muted:#667085;--accent:#4f46e5;--accent-text:#fff;--border:#e4e7ec;--ok:#067647;--err:#b42318;color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1420;--card:#192032;--text:#e8ecf4;--muted:#98a2b3;--accent:#8b85ff;--accent-text:#0f1420;--border:#2b3550;--ok:#47cd89;--err:#f97066;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1420;--card:#192032;--text:#e8ecf4;--muted:#98a2b3;--accent:#8b85ff;--accent-text:#0f1420;--border:#2b3550;--ok:#47cd89;--err:#f97066;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+h1{margin:0;font-size:1.6rem}.sub{color:var(--muted);margin:2px 0 14px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:14px}
+input,select,button{font:inherit;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);min-width:0}
+button{cursor:pointer;background:var(--accent);color:var(--accent-text);border:0;font-weight:600}
+button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.layout{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
+@media(max-width:800px){.layout{grid-template-columns:1fr}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.thumb{font-size:2.6rem;text-align:center;background:var(--bg);border-radius:8px;padding:10px 0}
+.meta{color:var(--muted);font-size:.85rem}.price{font-weight:700}
+.cart{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
+.cart h2{margin:0 0 8px;font-size:1.1rem}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:4px 0}
+.row button{padding:2px 8px}
+.total{font-weight:700;font-size:1.1rem;border-top:1px solid var(--border);margin-top:6px;padding-top:6px}
+.inline{display:flex;gap:6px;margin:8px 0}.inline input{flex:1}
+form{display:grid;gap:6px;margin-top:8px}
+.msg{min-height:1.3em;font-size:.9rem}.ok{color:var(--ok)}.err{color:var(--err)}
+.empty{color:var(--muted);padding:16px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>3D Market</h1>
+  <p class="sub">Магазин готових 3D-моделей: оберіть модель, додайте в кошик і оформте замовлення.</p>
+
+  <div class="controls">
+    <input id="q" type="search" placeholder="Пошук за назвою чи тегом" aria-label="Пошук">
+    <select id="cat" aria-label="Категорія"><option value="">Усі категорії</option></select>
+    <select id="fmt" aria-label="Формат"><option value="">Усі формати</option></select>
+    <input id="min" type="number" min="0" placeholder="Ціна від" aria-label="Мінімальна ціна">
+    <input id="max" type="number" min="0" placeholder="Ціна до" aria-label="Максимальна ціна">
+    <select id="sort" aria-label="Сортування">
+      <option value="">Без сортування</option>
+      <option value="price-asc">Ціна: від дешевих</option>
+      <option value="price-desc">Ціна: від дорогих</option>
+      <option value="rating">За рейтингом</option>
+      <option value="name">За назвою</option>
+    </select>
+  </div>
+
+  <div class="layout">
+    <section><div id="grid" class="grid" aria-live="polite"></div></section>
+    <aside class="cart">
+      <h2>Кошик (<span id="count">0</span>)</h2>
+      <div id="items"></div>
+      <div class="row"><span>Сума</span><span id="subtotal">0,00 грн</span></div>
+      <div class="inline">
+        <input id="promo" placeholder="Промокод" aria-label="Промокод">
+        <button id="applyPromo" class="ghost" type="button">Застосувати</button>
+      </div>
+      <div id="promoMsg" class="msg"></div>
+      <div class="row total"><span>До сплати</span><span id="total">0,00 грн</span></div>
+      <form id="order" novalidate>
+        <input id="name" placeholder="Ім’я" autocomplete="name" aria-label="Ім’я">
+        <input id="email" type="email" placeholder="Електронна пошта" autocomplete="email" aria-label="Електронна пошта">
+        <label><input id="agree" type="checkbox"> Погоджуюсь з умовами ліцензії</label>
+        <button type="submit">Оформити замовлення</button>
+        <div id="status" class="msg" role="status"></div>
+      </form>
+    </aside>
+  </div>
+</div>
+
+<script src="src/shop.js"></script>
+<script>
+const { PRODUCTS, searchProducts, filterProducts, sortProducts, addToCart, removeFromCart,
+        cartSubtotal, applyPromo, createOrder, formatPrice } = Shop;
+const $ = (id) => document.getElementById(id);
+let cart = [];
+let promoCode = '';
+
+[...new Set(PRODUCTS.map((p) => p.category))].forEach((c) => $('cat').add(new Option(c, c)));
+[...new Set(PRODUCTS.map((p) => p.format))].forEach((f) => $('fmt').add(new Option(f, f)));
+
+function renderGrid() {
+  const found = sortProducts(
+    filterProducts(searchProducts(PRODUCTS, $('q').value), {
+      category: $('cat').value, format: $('fmt').value, minPrice: $('min').value, maxPrice: $('max').value,
+    }),
+    $('sort').value
+  );
+  $('grid').innerHTML = found.length
+    ? found.map((p) => `<article class="card">
+        <div class="thumb" aria-hidden="true">${p.emoji}</div>
+        <strong>${p.title}</strong>
+        <span class="meta">${p.category} · ${p.format} · ★ ${p.rating}</span>
+        <span class="price">${formatPrice(p.price)}</span>
+        <button type="button" data-add="${p.id}" ${cart.some((i) => i.id === p.id) ? 'disabled' : ''}>
+          ${cart.some((i) => i.id === p.id) ? 'У кошику' : 'Додати в кошик'}</button></article>`).join('')
+    : '<p class="empty">Нічого не знайдено. Змініть параметри пошуку.</p>';
+}
+
+function renderCart() {
+  $('count').textContent = cart.length;
+  $('items').innerHTML = cart.length
+    ? cart.map((i) => `<div class="row"><span>${i.title}</span><span>${formatPrice(i.price)}
+        <button type="button" class="ghost" data-del="${i.id}" aria-label="Видалити ${i.title}">×</button></span></div>`).join('')
+    : '<p class="empty">Кошик порожній</p>';
+  const subtotal = cartSubtotal(cart);
+  const promo = applyPromo(subtotal, promoCode);
+  $('subtotal').textContent = formatPrice(subtotal);
+  $('total').textContent = formatPrice(promo.total);
+  if (promoCode) {
+    $('promoMsg').className = 'msg ok';
+    $('promoMsg').textContent = subtotal > 0
+      ? `Знижку застосовано: −${formatPrice(promo.discount)}`
+      : 'Промокод прийнято, знижка з’явиться після додавання моделей';
+  }
+  renderGrid();
+}
+
+['q', 'cat', 'fmt', 'min', 'max', 'sort'].forEach((id) => $(id).addEventListener('input', renderGrid));
+$('grid').addEventListener('click', (e) => {
+  const id = Number(e.target.dataset.add);
+  if (id) { cart = addToCart(cart, PRODUCTS.find((p) => p.id === id)); renderCart(); }
+});
+$('items').addEventListener('click', (e) => {
+  const id = Number(e.target.dataset.del);
+  if (id) { cart = removeFromCart(cart, id); renderCart(); }
+});
+$('applyPromo').addEventListener('click', () => {
+  const r = applyPromo(cartSubtotal(cart), $('promo').value);
+  promoCode = r.valid ? $('promo').value : '';
+  if (!r.valid) {
+    $('promoMsg').className = 'msg err';
+    $('promoMsg').textContent = 'Промокод не знайдено';
+  }
+  renderCart();
+});
+$('order').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const r = createOrder(cart, promoCode, { name: $('name').value, email: $('email').value, agree: $('agree').checked });
+  $('status').className = 'msg ' + (r.ok ? 'ok' : 'err');
+  if (r.ok) {
+    $('status').textContent = `Замовлення прийнято: ${r.items} мод., до сплати ${formatPrice(r.total)}. Посилання надійде на пошту.`;
+    cart = []; promoCode = ''; $('promo').value = ''; $('promoMsg').textContent = ''; renderCart();
+  } else {
+    $('status').textContent = Object.values(r.errors).join('. ');
+  }
+});
+renderCart();
+</script>
+</body>
+</html>
