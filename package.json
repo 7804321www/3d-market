@@ -1,0 +1,12 @@
+{
+  "name": "3d-market",
+  "version": "1.0.0",
+  "description": "Сайт з продажу 3D-моделей (лабораторна робота №5)",
+  "scripts": {
+    "test": "node --test tests/shop.test.js tests/ui.test.js",
+    "coverage": "node --test --experimental-test-coverage tests/shop.test.js tests/ui.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^31.0.1"
+  }
+}
